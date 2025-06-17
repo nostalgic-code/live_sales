@@ -65,6 +65,41 @@ def live_sales_by_rep():
     except requests.exceptions.RequestException as e:
         return jsonify({"error": "Request failed", "message": str(e)}), 500
 
+@app.route('/api/check-dates', methods=['GET'])
+def check_transaction_dates():
+    endpoint = f"{BASE_URL}/customer_transactions?max=1000"
+    try:
+        response = requests.get(
+            endpoint,
+            auth=HTTPBasicAuth(USERNAME, PASSWORD),
+            headers={"Accept": "application/json"},
+            timeout=30
+        )
+
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to fetch", "status": response.status_code}), response.status_code
+
+        transactions = response.json().get("customer_transactions", [])
+
+        # Get all unique dates found in the data
+        unique_dates = set()
+        for tx in transactions:
+            raw_date = tx.get("transaction_date", "")
+            try:
+                parsed_date = datetime.strptime(raw_date, "%m-%d-%Y").date()
+                unique_dates.add(parsed_date.isoformat())
+            except Exception:
+                continue
+
+        return jsonify({
+            "total_transactions": len(transactions),
+            "unique_dates": sorted(unique_dates, reverse=True)[:10]  # return latest 10 dates
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
