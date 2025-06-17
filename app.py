@@ -12,8 +12,8 @@ PASSWORD = "90fa0de5-250a-4e99-bd65-85b1854d9c82"
 BASE_URL = "http://102.33.60.228:9183/getResources"
 
 @app.route('/')
-def dashboard():
-    return render_template("index.html")
+def home():
+    return jsonify({"message": "Flask API is running. Visit /api/sales-live for live sales data."})
 
 @app.route('/api/sales-live', methods=['GET'])
 def live_sales_by_rep():
